@@ -88,7 +88,7 @@ class TimelogController < ApplicationController
       sql << " WHERE"
       sql << " (%s) AND" % @project.project_condition(Setting.display_subprojects_issues?) if @project
       sql << " (%s) AND" % Project.allowed_to_condition(User.current, :view_time_entries)
-      sql << " (spent_on BETWEEN '%s' AND '%s')" % [ActiveRecord::Base.connection.quoted_date(@from.to_time), ActiveRecord::Base.connection.quoted_date(@to.to_time)]
+      sql << " (spent_on BETWEEN '%s' AND '%s')" % [ActiveRecord::Base.connection.quoted_date(@from), ActiveRecord::Base.connection.quoted_date(@to)]
       sql << " GROUP BY #{sql_group_by}, tyear, tmonth, tweek, spent_on"
       
       @hours = ActiveRecord::Base.connection.select_all(sql)
@@ -197,6 +197,9 @@ class TimelogController < ApplicationController
     render_403 and return if @time_entry && !@time_entry.editable_by?(User.current)
     @time_entry ||= TimeEntry.new(:project => @project, :issue => @issue, :user => User.current, :spent_on => Date.today)
     @time_entry.attributes = params[:time_entry]
+    
+    call_hook(:controller_timelog_edit_before_save, { :params => params, :time_entry => @time_entry })
+    
     if request.post? and @time_entry.save
       flash[:notice] = l(:notice_successful_update)
       redirect_back_or_default :action => 'details', :project_id => @time_entry.project

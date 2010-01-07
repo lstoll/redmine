@@ -37,7 +37,7 @@ module Redmine
             version = nil
             shellout(cmd) do |io|
               # Read svn version in first returned line
-              if m = io.gets.match(%r{((\d+\.)+\d+)})
+              if m = io.gets.to_s.match(%r{((\d+\.)+\d+)})
                 version = m[0].scan(%r{\d+}).collect(&:to_i)
               end
             end
@@ -224,6 +224,7 @@ module Redmine
           str = ''
           str << " --username #{shell_quote(@login)}" unless @login.blank?
           str << " --password #{shell_quote(@password)}" unless @login.blank? || @password.blank?
+          str << " --no-auth-cache --non-interactive"
           str
         end
       end
