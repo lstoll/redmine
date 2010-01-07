@@ -110,5 +110,20 @@ END_DESC
 
       Redmine::IMAP.check(imap_options, options)
     end
+
+ task :receive_pop => :environment do
+       pop_options  = {:host => ENV['host'],
+                       :port => ENV['port'],
+                       :username => ENV['username'],
+                       :password => ENV['password'], :ssl => ENV['ssl']}
+ 
+       options = { :issue => {} }
+       %w(project status tracker category priority).each { |a| options[:issue][a.to_sym] = ENV[a] if ENV[a] }
+       options[:allow_override] = ENV['allow_override'] if ENV['allow_override']
+ 
+       Redmine::POP3.check(pop_options, options)
+     end
+
+
   end
 end
