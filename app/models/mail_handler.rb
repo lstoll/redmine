@@ -126,8 +126,13 @@ class MailHandler < ActionMailer::Base
     raise UnauthorizedAction unless user.allowed_to?(:add_issue_notes, issue.project) || user.allowed_to?(:edit_issues, issue.project)
     raise UnauthorizedAction unless status.nil? || user.allowed_to?(:edit_issues, issue.project)
 
+    # strip quoted text
+    note_details = plain_text_body
+    if /^(\>|:|\|)*\s*----- REPLY ABOVE THIS LINE/ =~ note_details
+      note_details = $`
+    end
     # add the note
-    journal = issue.init_journal(user, plain_text_body)
+    journal = issue.init_journal(user, note_details)
     add_attachments(issue)
     # check workflow
     if status && issue.new_statuses_allowed_to(user).include?(status)
